@@ -1,0 +1,107 @@
+-- Dav Hub Fly V1.0
+
+-- Serviços
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local lp = Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- Variáveis
+local flying = false
+local speed = 50
+local flyDirection = Vector3.zero
+
+-- GUI
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "DavHubFly"
+
+local hub = Instance.new("Frame", gui)
+hub.Size = UDim2.new(0, 220, 0, 150)
+hub.Position = UDim2.new(0.7, 0, 0.1, 0)
+hub.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+hub.BorderSizePixel = 0
+hub.Active = true
+hub.Draggable = true
+
+local title = Instance.new("TextLabel", hub)
+title.Text = "Dav Hub Fly v1.0"
+title.Size = UDim2.new(1, 0, 0.2, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextScaled = true
+
+-- Botão Ativar/Desativar
+local toggle = Instance.new("TextButton", hub)
+toggle.Size = UDim2.new(1, -10, 0, 30)
+toggle.Position = UDim2.new(0, 5, 0.25, 0)
+toggle.Text = "Fly: OFF"
+toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+toggle.TextColor3 = Color3.new(1, 1, 1)
+
+toggle.MouseButton1Click:Connect(function()
+    flying = not flying
+    toggle.Text = "Fly: " .. (flying and "ON" or "OFF")
+end)
+
+-- Botão Aumentar Velocidade
+local upBtn = Instance.new("TextButton", hub)
+upBtn.Size = UDim2.new(1, -10, 0, 30)
+upBtn.Position = UDim2.new(0, 5, 0.5, 0)
+upBtn.Text = "Velocidade + (Atual: 50)"
+upBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+upBtn.TextColor3 = Color3.new(1, 1, 1)
+
+upBtn.MouseButton1Click:Connect(function()
+    speed = speed + 10
+    upBtn.Text = "Velocidade + (Atual: " .. speed .. ")"
+    downBtn.Text = "Velocidade - (Atual: " .. speed .. ")"
+end)
+
+-- Botão Diminuir Velocidade
+local downBtn = Instance.new("TextButton", hub)
+downBtn.Size = UDim2.new(1, -10, 0, 30)
+downBtn.Position = UDim2.new(0, 5, 0.75, 0)
+downBtn.Text = "Velocidade - (Atual: 50)"
+downBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+downBtn.TextColor3 = Color3.new(1, 1, 1)
+
+downBtn.MouseButton1Click:Connect(function()
+    speed = math.max(10, speed - 10)
+    upBtn.Text = "Velocidade + (Atual: " .. speed .. ")"
+    downBtn.Text = "Velocidade - (Atual: " .. speed .. ")"
+end)
+
+-- Movimentação Fly
+UIS.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        if input.KeyCode == Enum.KeyCode.W then
+            flyDirection = Vector3.new(0, 0, -1)
+        elseif input.KeyCode == Enum.KeyCode.S then
+            flyDirection = Vector3.new(0, 0, 1)
+        elseif input.KeyCode == Enum.KeyCode.A then
+            flyDirection = Vector3.new(-1, 0, 0)
+        elseif input.KeyCode == Enum.KeyCode.D then
+            flyDirection = Vector3.new(1, 0, 0)
+        elseif input.KeyCode == Enum.KeyCode.Space then
+            flyDirection = Vector3.new(0, 1, 0)
+        elseif input.KeyCode == Enum.KeyCode.LeftControl then
+            flyDirection = Vector3.new(0, -1, 0)
+        end
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    flyDirection = Vector3.zero
+end)
+
+-- Loop Fly
+RunService.RenderStepped:Connect(function()
+    if flying and flyDirection.Magnitude > 0 then
+        hrp.Velocity = (Camera.CFrame:VectorToWorldSpace(flyDirection)).Unit * speed
+    elseif flying then
+        hrp.Velocity = Vector3.zero
+    end
+end)
